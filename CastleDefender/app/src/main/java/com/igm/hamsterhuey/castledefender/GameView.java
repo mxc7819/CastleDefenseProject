@@ -1,11 +1,16 @@
 package com.igm.hamsterhuey.castledefender;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -27,6 +32,9 @@ public class GameView extends SurfaceView implements Runnable {
     private ArrayList<Attacker> mAttackers;
     private Bitmap mAttackerSprite;
 
+    private Paint paint;
+    private Canvas canvas;
+
     // GameView Constructor
     /*
      * @param {context} The context from which the constructor was invoked
@@ -45,6 +53,7 @@ public class GameView extends SurfaceView implements Runnable {
         // Find reference to the SurfaceView's holder
         mHolder = getHolder();
         mAttackers = new ArrayList();
+        paint = new Paint();
 
         // Initialize the game
         initNewGame(context);
@@ -70,9 +79,25 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void draw() {
+        if (mHolder.getSurface().isValid()) {
+            //First we lock the area of memory we will be drawing to
+            canvas = mHolder.lockCanvas();
+            // Rub out the last frame
+            canvas.drawColor(Color.argb(255, 181, 230, 29));
 
-        for (Attacker a: mAttackers) {
-            a.draw(mHolder);
+            paint.setTextAlign(Paint.Align.LEFT);
+            paint.setColor(Color.argb(255, 0, 0, 0));
+            paint.setTextSize(25);
+
+            canvas.drawText("Castle Health:" + mCastleHealth,10, 20, paint);
+            for (Attacker a: mAttackers) {
+                a.draw(mHolder);
+
+            // Unlock and draw the scene
+            mHolder.unlockCanvasAndPost(canvas);
+        }
+
+
         }
     }
 
@@ -81,7 +106,10 @@ public class GameView extends SurfaceView implements Runnable {
     private void initNewGame(Context context) {
         mPlaying = false;
         mCastleHealth = 1000;
-        Bitmap attackerImage = BitmapFactory.decodeResource(context.getResources(), R.drawable.attackersheet);
+
+        Resources res = getContext().getResources();
+        int id = R.drawable.attackersheet;
+        Bitmap attackerImage = BitmapFactory.decodeResource(res, id);
         // Make a new sprite for the attackers
         Sprite attackSprite = new Sprite(attackerImage, 2, 8, 64, 64, this);
         // Make a new attacker using this sprite
@@ -89,6 +117,7 @@ public class GameView extends SurfaceView implements Runnable {
         // Add the attacker to the member list
         mAttackers.add(attacker);
 
+        Log.d("myLog", mAttackers.size() + "");
         resume();
     }
 

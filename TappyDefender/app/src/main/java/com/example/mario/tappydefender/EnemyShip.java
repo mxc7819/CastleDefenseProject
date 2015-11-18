@@ -4,6 +4,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.view.MotionEvent;
+import android.view.SurfaceView;
+import android.view.View;
 
 import java.util.Random;
 
@@ -129,5 +132,12 @@ public class EnemyShip {
                     false);
         }
     }
+
+    View.OnClickListener clicker = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            x = 0;
+        }
+    };
 
 }
