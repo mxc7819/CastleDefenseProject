@@ -40,6 +40,8 @@ public class DefenderGame extends ApplicationAdapter {
 	private final int SPAWN_TIME_MAX = 120;
 	private final int SPAWN_LOCATION_MIN = 1;
 	private final int SPAWN_LOCATION_MAX = 4;
+	private final int SPAWN_SPEED_MAX = 150;
+	private final int SPAWN_SPEED_MIN = 60;
 
 	// Constant variables used in game
     private final float MIN_SPAWN_Y = 65f; // The lowest point an attacker spawns at
@@ -163,8 +165,9 @@ public class DefenderGame extends ApplicationAdapter {
 		if(spawnTime<0) {
 			// Randomly selects a lane to spawn an enemy
 			Random rng = new Random();
-			float i = rng.nextInt(SPAWN_LOCATION_MAX - SPAWN_LOCATION_MIN + 1) + SPAWN_LOCATION_MIN;
-			Attacker attacker = new Attacker(1f, 100f, 40f * i, 30 * i);
+			float laneLocation = rng.nextInt(SPAWN_LOCATION_MAX - SPAWN_LOCATION_MIN + 1) + SPAWN_LOCATION_MIN;
+			float walkSpeed = rng.nextInt(SPAWN_SPEED_MAX - SPAWN_SPEED_MIN +1) + SPAWN_SPEED_MIN;
+			Attacker attacker = new Attacker(1f, walkSpeed, 40f * laneLocation, 30 * laneLocation);
 			attacker.addAnimation(mStandardAttackerWalk, "walk");
 			attacker.revive();
 			mAttackerList.add(attacker);
