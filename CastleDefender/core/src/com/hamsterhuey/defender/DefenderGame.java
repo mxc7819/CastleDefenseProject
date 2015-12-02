@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class DefenderGame extends ApplicationAdapter {
 	// Classes used in rendering game objects to the screen
@@ -32,6 +33,13 @@ public class DefenderGame extends ApplicationAdapter {
 	private int mRoundMaxAttackers;
 	private boolean mPaused;
 	private int mRoundNumber;
+
+	// Spawn variables
+	int spawnTime;
+	private final int SPAWN_TIME_MIN = 85;
+	private final int SPAWN_TIME_MAX = 120;
+	private final int SPAWN_LOCATION_MIN = 1;
+	private final int SPAWN_LOCATION_MAX = 4;
 
 	// Constant variables used in game
     private final float MIN_SPAWN_Y = 65f; // The lowest point an attacker spawns at
@@ -66,7 +74,7 @@ public class DefenderGame extends ApplicationAdapter {
         mRoundNumber = 1;
         mRoundMaxAttackers = 5;
         mPaused = false;
-
+		spawnTime = 100;
 		// Test the sprite class by giving it a walking animation
 		Texture walkTexture = new Texture("attackerSheet.png");
 		TextureRegion[][] walkTempArray = TextureRegion.split(walkTexture, 64, 64);
@@ -125,7 +133,7 @@ public class DefenderGame extends ApplicationAdapter {
 		// Every frame will update these variables, independent of game state
 		mCamera.update();
 		float deltaTime = Gdx.graphics.getDeltaTime();
-
+		spawnTime--;
 		/**
 		 * Input Handling
 		 * When the screen is touched, kill touched attackers
@@ -149,6 +157,20 @@ public class DefenderGame extends ApplicationAdapter {
 					}
 				}
 			}
+		}
+
+		// Spawns a new enemy once the respawn timer hits less than 0
+		if(spawnTime<0) {
+			// Randomly selects a lane to spawn an enemy
+			Random rng = new Random();
+			float i = rng.nextInt(SPAWN_LOCATION_MAX - SPAWN_LOCATION_MIN + 1) + SPAWN_LOCATION_MIN;
+			Attacker attacker = new Attacker(1f, 100f, 40f * i, 30 * i);
+			attacker.addAnimation(mStandardAttackerWalk, "walk");
+			attacker.revive();
+			mAttackerList.add(attacker);
+
+			// Randomly selects a new respawn timer
+			spawnTime = rng.nextInt(SPAWN_TIME_MAX - SPAWN_TIME_MIN + 1) + SPAWN_TIME_MIN;
 		}
 
 		// Loop through the list of attackers and update each (dead attackers' update does nothing)
