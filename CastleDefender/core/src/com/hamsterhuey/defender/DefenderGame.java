@@ -18,16 +18,25 @@ public class DefenderGame extends ApplicationAdapter {
 	// Classes used in rendering game objects to the screen
 	private SpriteBatch mBatch;
 	private OrthographicCamera mCamera;
+    private Texture mGameBackground;
 
 	// Animations used by sprites in game
 	private Animation mStandardAttackerWalk;
 
 	// Member variables used in game calculations
-	private float mRoundTimeElapsed;
+	private int mRoundTimeElapsed;
+    private int mRoundMaxTime;
 	private float mCastleHealth;
+    private float mRoundScore;
+    private float mTotalScore;
 	private int mRoundMaxAttackers;
 	private boolean mPaused;
 	private int mRoundNumber;
+
+	// Constant variables used in game
+    private final float MIN_SPAWN_Y = 65f; // The lowest point an attacker spawns at
+    private final float MAX_SPAWN_Y = 95f; // The highest point an attacker spawns at
+    private final float MIN_STOP_X = 585f; // The closest point that an attacker can damage the castle
 
 	// Data structures for keeping track of specific objects in game
 	private ArrayList<Attacker> mAttackerList;
@@ -40,12 +49,23 @@ public class DefenderGame extends ApplicationAdapter {
 		mBatch = new SpriteBatch();
 		mCamera = new OrthographicCamera();
 		mCamera.setToOrtho(false, 800, 480); // Regardless of resolution, project screen onto 800 x 480 orthographic matrix
+        mGameBackground = new Texture("castle_v1.png");
 
-		// Assign value to lists so they may be given objects to store
+		// Assign value to list so it may be given objects to store
 		mAttackerList = new ArrayList<Attacker>();
 
 		// Create the object that tracks the touch coordinates
 		mLastTouch = new Vector3();
+
+        // Assign value to miscellaneous game variables
+        mRoundTimeElapsed = 0;
+        mRoundMaxTime = 50000; // MILLISECONDS! Equal to 50 SECONDS
+        mCastleHealth = 10000f; // Will last 10,000 frames if attacked by one single standard attacker constantly
+        mRoundScore = 0f;
+        mTotalScore = 0f; // Rounds aren't implemented yet
+        mRoundNumber = 1;
+        mRoundMaxAttackers = 5;
+        mPaused = false;
 
 		// Test the sprite class by giving it a walking animation
 		Texture walkTexture = new Texture("attackerSheet.png");
@@ -87,6 +107,9 @@ public class DefenderGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		mBatch.begin();
+        // Draw the background first
+        mBatch.draw(mGameBackground, 0f, 0f);
+
 		for (Attacker a: mAttackerList) {
 			if(a.isAlive()) {
 				mBatch.draw(a.getCurrentFrame(), a.getX(), a.getY());
