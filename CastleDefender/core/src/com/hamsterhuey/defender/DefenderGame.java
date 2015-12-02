@@ -33,6 +33,11 @@ public class DefenderGame extends ApplicationAdapter {
 	private int mRoundMaxAttackers;
 	private boolean mPaused;
 	private int mRoundNumber;
+	private int score;
+
+	// Monster House Variables
+	private int monsterHouseSpawn;
+	private boolean monsterHouseMode;
 
 	// Spawn variables
 	int spawnTime;
@@ -77,6 +82,11 @@ public class DefenderGame extends ApplicationAdapter {
         mRoundMaxAttackers = 5;
         mPaused = false;
 		spawnTime = 100;
+		score = 0;
+		//TEMPORARY! Will change the logic later
+		monsterHouseSpawn = 10;
+		monsterHouseMode = false;
+
 		// Test the sprite class by giving it a walking animation
 		Texture walkTexture = new Texture("attackerSheet.png");
 		TextureRegion[][] walkTempArray = TextureRegion.split(walkTexture, 64, 64);
@@ -156,6 +166,13 @@ public class DefenderGame extends ApplicationAdapter {
 					if(deltaX <= 32f && deltaY <= 32f) {
 						// Kill the attacker
 						a.kill();
+
+						// Update the score
+						score += 100;
+
+						//update the Monster House spawner
+						if(!monsterHouseMode)
+							monsterHouseSpawn--;
 					}
 				}
 			}
@@ -174,6 +191,24 @@ public class DefenderGame extends ApplicationAdapter {
 
 			// Randomly selects a new respawn timer
 			spawnTime = rng.nextInt(SPAWN_TIME_MAX - SPAWN_TIME_MIN + 1) + SPAWN_TIME_MIN;
+		}
+
+		//spawns a row of enemy units if player is doing well
+		if(monsterHouseSpawn<0) {
+			monsterHouseMode = true;
+			int monsterHouseRush = 3;
+			while(monsterHouseRush > 0) {
+				for (float i = 0; i < 5f; i++) {
+					Attacker attacker = new Attacker(1f, 150f, 40f * i, 30 * i);
+					attacker.addAnimation(mStandardAttackerWalk, "walk");
+					attacker.revive();
+
+					mAttackerList.add(attacker);
+				}
+				monsterHouseRush--;
+			}
+			monsterHouseSpawn = 10;
+			monsterHouseMode = false;
 		}
 
 		// Loop through the list of attackers and update each (dead attackers' update does nothing)
