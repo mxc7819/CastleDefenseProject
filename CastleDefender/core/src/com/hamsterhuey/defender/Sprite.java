@@ -240,6 +240,8 @@ public class Sprite {
      */
     public void setPosition(float x, float y) {
         mBoundingBox.setPosition(x, y);
+        mX = (int)x;
+        mY = (int)y;
     }
 
     // Generated Getters and Setters below

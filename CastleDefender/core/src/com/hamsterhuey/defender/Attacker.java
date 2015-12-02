@@ -120,6 +120,10 @@ public class Attacker {
         return (float)mCharacterSprite.getY();
     }
 
+    public float getHitDamage() {
+        return mHitDamage;
+    }
+
     public boolean isAlive() {
         return mAlive;
     }

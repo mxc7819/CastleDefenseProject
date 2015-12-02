@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -18,6 +19,7 @@ import java.util.Random;
 public class DefenderGame extends ApplicationAdapter {
 	// Classes used in rendering game objects to the screen
 	private SpriteBatch mBatch;
+    private BitmapFont mFont;
 	private OrthographicCamera mCamera;
     private Texture mGameBackground;
 
@@ -25,14 +27,16 @@ public class DefenderGame extends ApplicationAdapter {
 	private Animation mStandardAttackerWalk;
 
 	// Member variables used in game calculations
+    private int mRoundNumber;
 	private int mRoundTimeElapsed;
     private int mRoundMaxTime;
+    private int mRoundMaxAttackers;
 	private float mCastleHealth;
     private float mRoundScore;
     private float mTotalScore;
-	private int mRoundMaxAttackers;
+    private String mHealthText;
+    private String mScoreText;
 	private boolean mPaused;
-	private int mRoundNumber;
 	private int score;
 
 	// Monster House Variables
@@ -62,6 +66,7 @@ public class DefenderGame extends ApplicationAdapter {
 	public void create () {
 		// Begin by setting up screen rendering classes
 		mBatch = new SpriteBatch();
+        mFont = new BitmapFont();
 		mCamera = new OrthographicCamera();
 		mCamera.setToOrtho(false, 800, 480); // Regardless of resolution, project screen onto 800 x 480 orthographic matrix
         mGameBackground = new Texture("castle_v1.png");
@@ -75,15 +80,17 @@ public class DefenderGame extends ApplicationAdapter {
         // Assign value to miscellaneous game variables
         mRoundTimeElapsed = 0;
         mRoundMaxTime = 50000; // MILLISECONDS! Equal to 50 SECONDS
-        mCastleHealth = 10000f; // Will last 10,000 frames if attacked by one single standard attacker constantly
+        mCastleHealth = 1000f; // Will last 1,000 frames if attacked by one single standard attacker constantly
         mRoundScore = 0f;
         mTotalScore = 0f; // Rounds aren't implemented yet
         mRoundNumber = 1;
         mRoundMaxAttackers = 5;
         mPaused = false;
-		spawnTime = 100;
-		score = 0;
+        mHealthText = "Castle Strength: " + mCastleHealth;
+        mScoreText = "Score: " + mRoundScore;
 		//TEMPORARY! Will change the logic later
+        spawnTime = 100;
+        score = 0;
 		monsterHouseSpawn = 10;
 		monsterHouseMode = false;
 
@@ -119,7 +126,8 @@ public class DefenderGame extends ApplicationAdapter {
 	@Override
 	public void render() {
 		// Call update before anything gets drawn
-		update();
+        if(!mPaused)
+		    update();
 
 		// Begin drawing operations - set projection matrix, grab frames, etc
 		mBatch.setProjectionMatrix(mCamera.combined);
@@ -130,11 +138,19 @@ public class DefenderGame extends ApplicationAdapter {
         // Draw the background first
         mBatch.draw(mGameBackground, 0f, 0f);
 
-		for (Attacker a: mAttackerList) {
-			if(a.isAlive()) {
-				mBatch.draw(a.getCurrentFrame(), a.getX(), a.getY());
-			}
-		}
+        // Draw text on top of the background in the sky
+        mFont.draw(mBatch, mHealthText, 600, 440);
+        mFont.draw(mBatch, mScoreText, 50, 440);
+
+        // Draw attackers if the game isn't paused
+        for (Attacker a : mAttackerList) {
+            if (a.isAlive()) {
+                mBatch.draw(a.getCurrentFrame(), a.getX(), a.getY());
+            }
+        }
+        if(mPaused)
+            mFont.draw(mBatch, "Game Over", 380, 440);
+
 		mBatch.end();
 	}
 
@@ -145,8 +161,12 @@ public class DefenderGame extends ApplicationAdapter {
 		// Every frame will update these variables, independent of game state
 		mCamera.update();
 		float deltaTime = Gdx.graphics.getDeltaTime();
+        mHealthText = "Castle Strength: " + mCastleHealth;
+        mScoreText = "Score: " + mRoundScore;
+
 		spawnTime--;
-		/**
+
+        /**
 		 * Input Handling
 		 * When the screen is touched, kill touched attackers
 		 * todo: Fling attackers on flick motions once physics is implemented
@@ -168,7 +188,7 @@ public class DefenderGame extends ApplicationAdapter {
 						a.kill();
 
 						// Update the score
-						score += 100;
+						mRoundScore += 100f;
 
 						//update the Monster House spawner
 						if(!monsterHouseMode)
@@ -214,6 +234,36 @@ public class DefenderGame extends ApplicationAdapter {
 		// Loop through the list of attackers and update each (dead attackers' update does nothing)
 		for (Attacker a: mAttackerList) {
 			a.update(deltaTime);
+
+            if(a.getX() > MIN_STOP_X) {
+                // The attacker stops at the castle and the castle begins losing health
+                a.setPosition(MIN_STOP_X, a.getY());
+                mCastleHealth -= a.getHitDamage();
+            }
 		}
+
+        // Check if the game is over, where mCastleHealth <= 0
+        if(mCastleHealth <= 0) {
+            // The castle has fallen to the attackers
+            // Currently, the game will pause and add text that states the game is over
+            mCastleHealth = 0f;
+            pause();
+        }
 	}
+
+    @Override
+    public void pause() {
+        mPaused = true;
+    }
+
+    @Override
+    public void resume() {
+        mPaused = false;
+    }
+
+    @Override
+    public void dispose() {
+        mBatch.dispose();
+        mFont.dispose();
+    }
 }
