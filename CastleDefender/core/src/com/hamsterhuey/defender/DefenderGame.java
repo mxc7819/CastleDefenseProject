@@ -22,6 +22,7 @@ public class DefenderGame extends ApplicationAdapter {
     private BitmapFont mFont;
 	private OrthographicCamera mCamera;
     private Texture mGameBackground;
+	private Texture[] mGameBackgrounds;
 
 	// Animations used by sprites in game
 	private Animation mStandardAttackerWalk;
@@ -31,13 +32,14 @@ public class DefenderGame extends ApplicationAdapter {
 	private int mRoundTimeElapsed;
     private int mRoundMaxTime;
     private int mRoundMaxAttackers;
+	private int mCastleDamageStage;
+	private float mCastleMaxHealth;
 	private float mCastleHealth;
     private float mRoundScore;
     private float mTotalScore;
     private String mHealthText;
     private String mScoreText;
 	private boolean mPaused;
-	private int score;
 
 	// Monster House Variables
 	private int monsterHouseSpawn;
@@ -70,6 +72,13 @@ public class DefenderGame extends ApplicationAdapter {
 		mCamera = new OrthographicCamera();
 		mCamera.setToOrtho(false, 800, 480); // Regardless of resolution, project screen onto 800 x 480 orthographic matrix
         mGameBackground = new Texture("castle_v1.png");
+		mGameBackgrounds = new Texture[6]; // Six frames describing six states of damage to the castle, from pristine to broken
+		mGameBackgrounds[0] = new Texture("castle_v1.png");
+		mGameBackgrounds[1] = new Texture("castle_v1_dam1.png");
+		mGameBackgrounds[2] = new Texture("castle_v1_dam2.png");
+		mGameBackgrounds[3] = new Texture("castle_v1_dam3.png");
+		mGameBackgrounds[4] = new Texture("castle_v1_dam4.png");
+		mGameBackgrounds[5] = new Texture("castle_v1_dam5.png");
 
 		// Assign value to list so it may be given objects to store
 		mAttackerList = new ArrayList<Attacker>();
@@ -80,7 +89,9 @@ public class DefenderGame extends ApplicationAdapter {
         // Assign value to miscellaneous game variables
         mRoundTimeElapsed = 0;
         mRoundMaxTime = 50000; // MILLISECONDS! Equal to 50 SECONDS
-        mCastleHealth = 1000f; // Will last 1,000 frames if attacked by one single standard attacker constantly
+		mCastleMaxHealth = 1000f;
+        mCastleHealth = mCastleMaxHealth; // Will last 1,000 frames if attacked by one single standard attacker constantly
+		mCastleDamageStage = 0;
         mRoundScore = 0f;
         mTotalScore = 0f; // Rounds aren't implemented yet
         mRoundNumber = 1;
@@ -90,7 +101,6 @@ public class DefenderGame extends ApplicationAdapter {
         mScoreText = "Score: " + mRoundScore;
 		//TEMPORARY! Will change the logic later
         spawnTime = 100;
-        score = 0;
 		monsterHouseSpawn = 10;
 		monsterHouseMode = false;
 
@@ -136,7 +146,7 @@ public class DefenderGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		mBatch.begin();
         // Draw the background first
-        mBatch.draw(mGameBackground, 0f, 0f);
+        mBatch.draw(mGameBackgrounds[mCastleDamageStage], 0f, 0f);
 
         // Draw text on top of the background in the sky
         mFont.draw(mBatch, mHealthText, 600, 440);
@@ -239,6 +249,26 @@ public class DefenderGame extends ApplicationAdapter {
                 // The attacker stops at the castle and the castle begins losing health
                 a.setPosition(MIN_STOP_X, a.getY());
                 mCastleHealth -= a.getHitDamage();
+				// Only bother checking castle damage stage here - only when damage is being dealt
+				float percentDamage = (mCastleMaxHealth - mCastleHealth) / mCastleMaxHealth;
+				if(percentDamage < 0.5f) {
+					mCastleDamageStage = 0;
+				}
+				else {
+					mCastleDamageStage = 1;
+				}
+				if(percentDamage > 0.15f) {
+					mCastleDamageStage = 2;
+				}
+				if(percentDamage > 0.35f) {
+					mCastleDamageStage = 3;
+				}
+				if(percentDamage > 0.65f) {
+					mCastleDamageStage = 4;
+				}
+				if(percentDamage > 0.85f) {
+					mCastleDamageStage = 5;
+				}
             }
 		}
 
