@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
+
 /**
  * Class for a single attacking enemy in the castle defender game
  *
@@ -14,16 +15,15 @@ public class Attacker {
     // Member variables unique to each attacker
     private float mHitDamage;
     private float mWalkSpeed;
+    private float mStartX;
     private float mX;
     private float mY;
+    private float mWidth;
+    private float mHeight;
     private boolean mAlive;
     private boolean mGrabbed;
+    private String mType;
     private Sprite mCharacterSprite;
-
-    // Multiple constructors exist, with a default no-argument constructor available
-    public Attacker() {
-        new Attacker(1f, 100f, 0f, 0f);
-    }
 
     /**
      * Attacker constructor that specifies all member variables in order
@@ -33,15 +33,22 @@ public class Attacker {
      * @param walkSpeed: The normal movement speed of the attacker as it moves left-to-right
      * @param x: The x coordinate to begin at
      * @param y: The y coordinate to begin at
+     * @param width: The width of the attacker's sprite
+     * @param height: The height of the attacker's sprite
+     * @param type: The string that describes the attacker (knight or regular)
      */
-    public Attacker(float hitDamage, float walkSpeed, float x, float y) {
+    public Attacker(float hitDamage, float walkSpeed, float x, float y, float width, float height, String type) {
         mHitDamage = hitDamage;
         mWalkSpeed = walkSpeed;
         mX = x;
+        mStartX = x;
         mY = y;
+        mWidth = width;
+        mHeight = height;
         mAlive = false;
         mGrabbed = false;
-        mCharacterSprite = new Sprite((int)x, (int)y, 64f, 64f);
+        mType = type;
+        mCharacterSprite = new Sprite((int)x, (int)y, width, height);
     }
 
     /**
@@ -52,7 +59,7 @@ public class Attacker {
      */
     public Rectangle update(float deltaTime) {
         if(!mAlive) {
-            // Return a null value if the attacker isn't alive (no drawing done or updating needed
+            // Return a null value if the attacker isn't alive (no drawing done or updating needed)
             return null;
         }
         else {
@@ -60,8 +67,13 @@ public class Attacker {
             // Overloaded call to update that adds mWalkSpeed to the sprite's Rectangle
             mCharacterSprite.update(deltaTime, mWalkSpeed, 0f);
 
+            // Grab the (x, y) coordinate from the updated sprite
+            Rectangle newBox = mCharacterSprite.getBoundingBox();
+            mX = newBox.getX();
+            mY = newBox.getY();
+
             // Return the sprite's bounding box attribute
-            return mCharacterSprite.getBoundingBox();
+            return newBox;
         }
     }
 
@@ -71,7 +83,9 @@ public class Attacker {
      */
     public void revive() {
         mAlive = true;
-        mCharacterSprite.play();
+        mX = mStartX;
+        mCharacterSprite.setPosition(mX, mY);
+        mCharacterSprite.restart();
     }
 
     /**
@@ -102,6 +116,15 @@ public class Attacker {
     }
 
     /**
+     * Method to play a specific animation on the attacker's sprite object
+     * @param animation: The string by which the sprite refers to the desired animation itself
+     * @param looping: A boolean to specify whether to loop the animation or not
+     */
+    public void play(String animation, boolean looping) {
+        mCharacterSprite.play(animation, looping);
+    }
+
+    /**
      * Method to set the position of an attacker, alive or dead is irrelevant
      *
      * @param x: The x coordinate of the attacker's bounding box
@@ -109,15 +132,25 @@ public class Attacker {
      */
     public void setPosition(float x, float y) {
         // Numbers not validated - can be moved off screen!
+        mX = x;
+        mY = y;
         mCharacterSprite.setPosition(x, y);
     }
 
     public float getX() {
-        return (float)mCharacterSprite.getX();
+        return mX;
     }
 
     public float getY() {
-        return (float)mCharacterSprite.getY();
+        return mY;
+    }
+
+    public float getWidth() {
+        return mWidth;
+    }
+
+    public float getHeight() {
+        return mHeight;
     }
 
     public float getHitDamage() {
@@ -126,5 +159,9 @@ public class Attacker {
 
     public boolean isAlive() {
         return mAlive;
+    }
+
+    public String getType() {
+        return mType;
     }
 }

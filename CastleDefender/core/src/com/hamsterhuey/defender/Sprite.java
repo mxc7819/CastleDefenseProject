@@ -100,7 +100,7 @@ public class Sprite {
      * @param looping: If true, the animation will repeat until otherwise specified
      */
     public void play(String animationName, boolean looping) {
-        if(!mAnimations.containsKey(animationName))
+        if(!mAnimations.containsKey(animationName) || animationName.equals(mCurrentAnimation))
             return;
 
         // Code here only runs if the desired animation exists on this sprite
@@ -111,14 +111,24 @@ public class Sprite {
     }
 
     /**
+     * Method that restarts animation from the beginning, with looping assumed true
+     */
+    public void restart() {
+        if(!mCurrentAnimation.equals("")){
+            mAnimating = true;
+            mLooping = true;
+            mStateTime = 0f;
+        } else {
+            play();
+        }
+    }
+
+    /**
      * Overload method to play an animation without specifying any particular animation
      * Defaults to the first animation in the list and assumes looping is true
      */
     public void play() {
-        if(mAnimations.isEmpty()) {
-            return;
-        }
-        else
+        if(!mAnimations.isEmpty())
             play(mAnimNames.get(0), true);
     }
 
